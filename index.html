@@ -1,0 +1,849 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Starbucks Global Brew Map</title>
+    
+    <style>
+        :root {
+            --sb-green: #00704A;
+            --sb-dark: #1e3932;
+            --sb-light: #d4e9e2;
+            --sb-gold: #cba258;
+            --bg-paper: #f2f0eb;
+            --text-color: #333;
+            --card-bg: #ffffff;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-paper);
+            color: var(--text-color);
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /* Header Styles */
+        header {
+            background-color: var(--sb-dark);
+            color: white;
+            width: 100%;
+            padding: 25px 0;
+            text-align: center;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            position: relative;
+            z-index: 10;
+        }
+
+        h1 {
+            font-weight: 700;
+            margin: 0;
+            font-size: 2.2rem;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+        }
+
+        h2 {
+            font-weight: 400;
+            font-size: 1rem;
+            margin-top: 8px;
+            color: var(--sb-gold);
+            letter-spacing: 0.5px;
+        }
+
+        /* Instruction Pulse */
+        .instruction {
+            margin-top: 20px;
+            background-color: var(--sb-green);
+            color: white;
+            padding: 8px 20px;
+            border-radius: 50px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            animation: pulse-btn 2s infinite;
+            cursor: default;
+            display: inline-block;
+        }
+
+        @keyframes pulse-btn {
+            0% { box-shadow: 0 0 0 0 rgba(0, 112, 74, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(0, 112, 74, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(0, 112, 74, 0); }
+        }
+
+        /* Map Container */
+        .map-wrapper {
+            width: 95%;
+            max-width: 1100px;
+            margin: 20px auto;
+            position: relative;
+            background: #eef5f2; /* Light tint */
+            border: 8px solid #fff;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+            overflow: hidden;
+        }
+
+        /* SVG Map Styling */
+        svg {
+            width: 100%;
+            height: auto;
+            display: block;
+            background-color: #e6f3f0; /* Ocean color */
+        }
+
+        .continent {
+            fill: #c6d6cc;
+            stroke: #fff;
+            stroke-width: 1;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .continent:hover {
+            fill: var(--sb-gold);
+            transform: translateY(-2px);
+            filter: drop-shadow(0 4px 4px rgba(0,0,0,0.1));
+        }
+
+        .continent.active {
+            fill: var(--sb-green);
+        }
+
+        .map-text {
+            font-weight: 800;
+            fill: var(--sb-dark);
+            font-size: 14px;
+            text-transform: uppercase;
+            pointer-events: none;
+            opacity: 0.7;
+        }
+
+        /* Annotations (Arrows & Labels) */
+        .annotation-group {
+            pointer-events: none; /* Let clicks pass through to map */
+        }
+
+        .annotation-text {
+            font-weight: 700;
+            font-size: 12px;
+            fill: #00704A; /* Starbucks Green */
+            text-transform: uppercase;
+            text-shadow: 0 2px 4px rgba(255,255,255,0.8);
+        }
+
+        .annotation-subtext {
+            font-weight: 600;
+            font-size: 10px;
+            fill: #555;
+            font-style: italic;
+        }
+
+        .annotation-arrow {
+            fill: none;
+            stroke: #cba258; /* Gold Arrow */
+            stroke-width: 2;
+            stroke-dasharray: 4; /* Dashed line */
+            marker-end: url(#arrowhead);
+        }
+
+        /* Pins */
+        .pin {
+            fill: #fff;
+            stroke: var(--sb-dark);
+            stroke-width: 2px;
+            pointer-events: none;
+        }
+        
+        .pin-inner {
+            fill: var(--sb-gold);
+            pointer-events: none;
+        }
+
+        /* Special Blend Button */
+        .blend-btn-container {
+            text-align: center;
+            margin: -10px auto 30px auto;
+        }
+
+        .blend-btn {
+            background-color: #212121; /* Dark roast color */
+            color: #fff;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 50px;
+            font-weight: 700;
+            font-size: 1rem;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .blend-btn:hover {
+            background-color: #000;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+        }
+
+        .blend-btn.active {
+            background-color: var(--sb-gold);
+            color: var(--sb-dark);
+        }
+
+        /* Content Display Area */
+        .content-area {
+            width: 90%;
+            max-width: 1000px;
+            margin: 0 auto 50px auto;
+            min-height: 200px;
+        }
+
+        .info-card {
+            background: var(--card-bg);
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            border-top: 6px solid var(--sb-green);
+            display: none; /* Hidden initially */
+            animation: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .info-card.active {
+            display: block;
+        }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .card-header-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            border-bottom: 2px solid #f0f0f0;
+            padding-bottom: 15px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .region-title {
+            font-size: 1.8rem;
+            color: var(--sb-dark);
+            font-weight: 700;
+        }
+
+        .taste-badge {
+            background-color: var(--sb-light);
+            color: var(--sb-dark);
+            padding: 8px 16px;
+            border-radius: 30px;
+            font-weight: 700;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* Coffee Grid */
+        .coffee-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+        }
+
+        .coffee-item {
+            background: #fff;
+            border: 1px solid #eee;
+            border-radius: 12px;
+            padding: 20px;
+            position: relative;
+            transition: transform 0.2s;
+        }
+        
+        .coffee-item:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        }
+
+        .coffee-name {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--sb-green);
+            margin-bottom: 5px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        
+        .roast-tag {
+            font-size: 0.7rem;
+            padding: 2px 6px;
+            border-radius: 4px;
+            color: white;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        .roast-blonde { background: #eac784; color: #555; }
+        .roast-medium { background: #c68555; }
+        .roast-dark { background: #5d4037; }
+
+        .tasting-notes {
+            font-style: italic;
+            color: #666;
+            margin-bottom: 15px;
+            font-size: 0.95rem;
+        }
+
+        /* Mini Note Box - The Educational Part */
+        .brew-note-box {
+            background-color: #fffaf0;
+            border-left: 4px solid #f57f17;
+            padding: 15px;
+            border-radius: 0 8px 8px 0;
+        }
+
+        .note-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #e65100;
+            font-weight: 700;
+            font-size: 0.85rem;
+            margin-bottom: 6px;
+            text-transform: uppercase;
+        }
+
+        .note-text {
+            font-size: 0.9rem;
+            color: #333;
+            line-height: 1.5;
+        }
+
+        .recommended-method {
+            font-weight: 700;
+            color: var(--sb-dark);
+        }
+
+        /* Footer / Legend */
+        .footer-guide {
+            background: white;
+            width: 100%;
+            padding: 40px 0;
+            margin-top: auto;
+            border-top: 5px solid var(--sb-gold);
+        }
+
+        .guide-content {
+            width: 90%;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .footer-split {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            flex-wrap: wrap;
+            gap: 40px;
+        }
+
+        .methods-section {
+            flex: 2;
+            min-width: 300px;
+        }
+
+        .methods-row {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .method-col {
+            flex: 1;
+            min-width: 150px;
+            background: #f9f9f9;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .method-icon {
+            font-size: 1.8rem;
+            margin-bottom: 8px;
+            display: block;
+        }
+        
+        .method-title {
+            font-weight: 700;
+            color: var(--sb-green);
+            margin-bottom: 5px;
+            display: block;
+            font-size: 0.95rem;
+        }
+        
+        .method-desc {
+            font-size: 0.8rem;
+            color: #555;
+        }
+
+        /* QR Code Section */
+        .qr-section {
+            flex: 1;
+            min-width: 250px;
+            background-color: var(--sb-dark);
+            color: white;
+            padding: 20px;
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+        }
+
+        .qr-img {
+            background: white;
+            padding: 8px;
+            border-radius: 8px;
+            width: 90px;
+            height: 90px;
+            flex-shrink: 0;
+        }
+        
+        .qr-text h4 {
+            margin: 0 0 5px 0;
+            color: var(--sb-gold);
+            font-size: 1rem;
+            text-transform: uppercase;
+        }
+        
+        .qr-text p {
+            margin: 0;
+            font-size: 0.8rem;
+            color: #ccc;
+            line-height: 1.4;
+        }
+
+        /* Default Placeholder */
+        .placeholder-message {
+            text-align: center;
+            padding: 40px;
+            color: #888;
+            font-size: 1.2rem;
+            font-style: italic;
+        }
+        .placeholder-icon {
+            font-size: 3rem;
+            margin-bottom: 15px;
+            opacity: 0.5;
+        }
+
+        @media (max-width: 768px) {
+            .footer-split {
+                flex-direction: column;
+            }
+            .qr-section {
+                width: 100%;
+                box-sizing: border-box;
+                justify-content: center;
+                text-align: left;
+            }
+        }
+
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>Starbucks Global Brew Map</h1>
+        <h2>Dünya Haritası Üzerinde Demleme Rehberi</h2>
+        <div class="instruction">Keşfetmek için Haritada Bir Bölgeye Tıklayın veya Butonu Kullanın 👇</div>
+    </header>
+
+    <!-- Interactive Map Section -->
+    <div class="map-wrapper">
+        <!-- Simplified World Map SVG -->
+        <svg viewBox="0 0 1000 500" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+                <!-- Define the arrowhead marker -->
+                <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                    <polygon points="0 0, 10 3.5, 0 7" fill="#cba258" />
+                </marker>
+            </defs>
+
+            <!-- LATIN AMERICA (Left) -->
+            <g id="latin-america" class="continent" onclick="showRegion('latin')">
+                <title>Latin Amerika: Fındık & Kakao</title>
+                <!-- North America rough shape -->
+                <path d="M 150,50 L 250,50 L 280,100 L 200,150 L 180,200 L 220,220 L 200,300 L 150,250 L 100,150 Z" />
+                <!-- South America rough shape -->
+                <path d="M 220,220 L 300,220 L 350,280 L 300,400 L 250,450 L 220,350 Z" />
+                <text x="250" y="380" class="map-text" text-anchor="middle">LATIN AMERİKA</text>
+                
+                <!-- Pins -->
+                <circle cx="230" cy="240" r="6" class="pin"/>
+                <circle cx="230" cy="240" r="3" class="pin-inner"/>
+                
+                <circle cx="260" cy="280" r="6" class="pin"/>
+                <circle cx="260" cy="280" r="3" class="pin-inner"/>
+            </g>
+
+            <!-- AFRICA (Center) -->
+            <g id="africa" class="continent" onclick="showRegion('africa')">
+                <title>Afrika: Çiçeksi & Narenciye</title>
+                <path d="M 450,150 L 550,150 L 580,200 L 550,350 L 500,400 L 450,300 L 420,200 Z" />
+                <!-- Arabian Peninsula bit -->
+                <path d="M 560,160 L 600,150 L 620,180 L 590,190 Z" />
+                <text x="500" y="320" class="map-text" text-anchor="middle">AFRİKA</text>
+
+                <!-- Pins -->
+                <circle cx="560" cy="230" r="6" class="pin"/>
+                <circle cx="560" cy="230" r="3" class="pin-inner"/>
+                
+                <circle cx="540" cy="260" r="6" class="pin"/>
+                <circle cx="540" cy="260" r="3" class="pin-inner"/>
+            </g>
+
+            <!-- ASIA / PACIFIC (Right) -->
+            <g id="asia-pacific" class="continent" onclick="showRegion('asia')">
+                <title>Asya/Pasifik: Baharatlı & Topraksı</title>
+                <!-- Asia rough shape -->
+                <path d="M 600,50 L 900,50 L 950,150 L 850,250 L 750,250 L 650,200 L 620,100 Z" />
+                <!-- Indonesia Islands rough -->
+                <path d="M 750,280 L 850,280 L 880,300 L 800,320 Z" />
+                <path d="M 820,300 L 840,290 L 850,310 Z" />
+                <!-- Australia -->
+                <path d="M 800,350 L 920,350 L 900,450 L 800,420 Z" />
+                
+                <text x="850" y="380" class="map-text" text-anchor="middle">ASYA / PASİFİK</text>
+
+                <!-- Pins -->
+                <circle cx="780" cy="290" r="6" class="pin"/>
+                <circle cx="780" cy="290" r="3" class="pin-inner"/>
+            </g>
+
+            <!-- VISUAL ANNOTATIONS (ARROWS & LABELS) -->
+            <g class="annotation-group">
+                <!-- Latin America Annotation -->
+                <!-- Arrow pointing from Pacific to Colombia/South America -->
+                <path class="annotation-arrow" d="M 90,320 Q 150,320 230,290" />
+                <text x="30" y="310" class="annotation-text">DENGELİ & FINDIKSI</text>
+                <text x="30" y="325" class="annotation-subtext">Kakao, Yumuşak Baharat</text>
+
+                <!-- Africa Annotation -->
+                <!-- Arrow pointing from South Atlantic to East Africa -->
+                <path class="annotation-arrow" d="M 400,430 Q 480,430 530,300" />
+                <text x="320" y="450" class="annotation-text">ÇİÇEKSİ & NARENCİYE</text>
+                <text x="340" y="465" class="annotation-subtext">Limon, Bergamot, Meyve</text>
+
+                <!-- Asia Annotation -->
+                <!-- Arrow pointing from Indian Ocean to Indonesia -->
+                <path class="annotation-arrow" d="M 660,380 Q 720,380 770,300" />
+                <text x="600" y="400" class="annotation-text">BAHARATLI & TOPRAKSI</text>
+                <text x="600" y="415" class="annotation-subtext">Yoğun Gövde, Sedir, Bitki</text>
+            </g>
+
+        </svg>
+    </div>
+
+    <!-- Extra Blends Button -->
+    <div class="blend-btn-container">
+        <button id="blend-btn" class="blend-btn" onclick="showRegion('blends')">
+            ☕ İmza Harmanlar & Dark Serisi
+        </button>
+    </div>
+
+    <!-- Info Cards Section -->
+    <div class="content-area">
+        
+        <div id="placeholder" class="placeholder-message">
+            <div class="placeholder-icon">☕</div>
+            Detaylı tadım notlarını ve demleme önerilerini görmek için yukarıdaki haritadan bir bölge seçin.
+        </div>
+
+        <!-- 1. LATIN AMERICA CARD (Updated with Turkey Market) -->
+        <div id="card-latin" class="info-card">
+            <div class="card-header-row">
+                <div>
+                    <div class="region-title">Latin Amerika</div>
+                    <div style="color:#666; font-size:0.9rem;">Meksika, Guatemala, Kosta Rika, Kolombiya</div>
+                </div>
+                <div class="taste-badge">Dengeli & Fındıksı 🌰</div>
+            </div>
+
+            <div class="coffee-grid">
+                <!-- Veranda Blend -->
+                <div class="coffee-item">
+                    <span class="coffee-name">Veranda Blend® <span class="roast-tag roast-blonde">Blonde</span></span>
+                    <p class="tasting-notes">Yumuşak kakao ve kavrulmuş malt notaları.</p>
+                    <div class="brew-note-box">
+                        <div class="note-header">💡 MİNİ NOT</div>
+                        <div class="note-text">
+                            <span class="recommended-method">Öneri: French Press (Kısa Süre)</span><br>
+                            Çok hafif olduğu için yanmamalı. 4 dakika yerine 3-3.5 dakika demleyin.
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Pike Place -->
+                <div class="coffee-item">
+                    <span class="coffee-name">Pike Place® Roast <span class="roast-tag roast-medium">Medium</span></span>
+                    <p class="tasting-notes">Yumuşak, dengeli, kavrulmuş fındık ve kakao.</p>
+                    <div class="brew-note-box">
+                        <div class="note-header">💡 MİNİ NOT</div>
+                        <div class="note-text">
+                            <span class="recommended-method">Öneri: Filtre Kahve Makinesi</span><br>
+                            Gün boyu içim için tasarlanmış, en tutarlı kahvedir. Standart demleme ile en iyi sonucu verir.
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Guatemala Antigua -->
+                <div class="coffee-item">
+                    <span class="coffee-name">Guatemala Antigua <span class="roast-tag roast-medium">Medium</span></span>
+                    <p class="tasting-notes">Limon, çikolata ve yumuşak baharatlar.</p>
+                    <div class="brew-note-box">
+                        <div class="note-header">💡 MİNİ NOT</div>
+                        <div class="note-text">
+                            <span class="recommended-method">Öneri: Pour-Over / V60</span><br>
+                            Karmaşık kakao ve baharat notalarını ayırt etmek için berrak bir demleme gerekir.
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Colombia -->
+                <div class="coffee-item">
+                    <span class="coffee-name">Colombia <span class="roast-tag roast-medium">Medium</span></span>
+                    <p class="tasting-notes">Canlı, ceviz notaları ve bitkisel bir bitiş.</p>
+                    <div class="brew-note-box">
+                        <div class="note-header">💡 MİNİ NOT</div>
+                        <div class="note-text">
+                            <span class="recommended-method">Öneri: French Press</span><br>
+                            Cevizimsi gövdesini ve canlılığını korumak için metal filtre idealdir.
+                        </div>
+                    </div>
+                </div>
+
+                <!-- House Blend -->
+                <div class="coffee-item">
+                    <span class="coffee-name">House Blend <span class="roast-tag roast-medium">Medium</span></span>
+                    <p class="tasting-notes">Zengin, canlı ve dengeli. Fındık ve kakao.</p>
+                    <div class="brew-note-box">
+                        <div class="note-header">💡 MİNİ NOT</div>
+                        <div class="note-text">
+                            <span class="recommended-method">Öneri: Filtre Kahve / Pour-Over</span><br>
+                            Starbucks'ın ilk harmanıdır. Klasik kahve tadını en saf haliyle verir.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2. AFRICA CARD -->
+        <div id="card-africa" class="info-card">
+            <div class="card-header-row">
+                <div>
+                    <div class="region-title">Afrika</div>
+                    <div style="color:#666; font-size:0.9rem;">Kenya, Etiyopya, Ruanda</div>
+                </div>
+                <div class="taste-badge" style="background:#fff3e0; color:#e65100;">Çiçeksi & Narenciye 🍋</div>
+            </div>
+
+            <div class="coffee-grid">
+                <!-- Kenya -->
+                <div class="coffee-item">
+                    <span class="coffee-name">Kenya <span class="roast-tag roast-medium">Medium</span></span>
+                    <p class="tasting-notes">Parlak asidite, greyfurt ve frenk üzümü notaları.</p>
+                    <div class="brew-note-box">
+                        <div class="note-header">💡 MİNİ NOT</div>
+                        <div class="note-text">
+                            <span class="recommended-method">Öneri: Chemex veya Iced Pour-Over</span><br>
+                            Meyvemsi ve "şarabımsı" asiditeyi ortaya çıkarmak için tortusuz demleme şart. Buzlu da harikadır.
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Ethiopia -->
+                <div class="coffee-item">
+                    <span class="coffee-name">Ethiopia <span class="roast-tag roast-medium">Medium</span></span>
+                    <p class="tasting-notes">Bitter çikolata, biberimsi baharat ve tatlı narenciye.</p>
+                    <div class="brew-note-box">
+                        <div class="note-header">💡 MİNİ NOT</div>
+                        <div class="note-text">
+                            <span class="recommended-method">Öneri: V60 Pour-Over</span><br>
+                            Katmanlı bir kahvedir; hem limon hem çikolata tadını almak için hassas demleme gerekir.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 3. ASIA/PACIFIC CARD -->
+        <div id="card-asia" class="info-card">
+            <div class="card-header-row">
+                <div>
+                    <div class="region-title">Asya / Pasifik</div>
+                    <div style="color:#666; font-size:0.9rem;">Sumatra, Java, Papua Yeni Gine</div>
+                </div>
+                <div class="taste-badge" style="background:#efebe9; color:#5d4037;">Topraksı & Baharatlı 🌿</div>
+            </div>
+
+            <div class="coffee-grid">
+                <!-- Sumatra -->
+                <div class="coffee-item">
+                    <span class="coffee-name">Sumatra <span class="roast-tag roast-dark">Dark</span></span>
+                    <p class="tasting-notes">Dolgun gövde, dünyevi bitkisel notalar, düşük asidite.</p>
+                    <div class="brew-note-box">
+                        <div class="note-header">💡 MİNİ NOT</div>
+                        <div class="note-text">
+                            <span class="recommended-method">Öneri: French Press</span><br>
+                            Yağlı ve ağır yapısını hissetmek için metal filtre kullanın. Kağıt filtre tadını zayıflatır.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 4. BLENDS / DARK ROAST CARD (NEW) -->
+        <div id="card-blends" class="info-card">
+            <div class="card-header-row">
+                <div>
+                    <div class="region-title">İmza Harmanlar (Dark)</div>
+                    <div style="color:#666; font-size:0.9rem;">Çok Bölgeli (Multi-Region) Harmanlar</div>
+                </div>
+                <div class="taste-badge" style="background:#212121; color:#fff;">Yoğun & Tatlı 🔥</div>
+            </div>
+
+            <div class="coffee-grid">
+                <!-- Espresso Roast -->
+                <div class="coffee-item">
+                    <span class="coffee-name">Espresso Roast <span class="roast-tag roast-dark">Dark</span></span>
+                    <p class="tasting-notes">Yoğun, karamelize şeker tatlılığı. Starbucks'ın kalbi.</p>
+                    <div class="brew-note-box">
+                        <div class="note-header">💡 MİNİ NOT</div>
+                        <div class="note-text">
+                            <span class="recommended-method">Öneri: Espresso Makinesi / Moka Pot</span><br>
+                            Basınçlı demleme için tasarlanmıştır. Kremamsı yapısı ve karamel tadı ancak basınçla ortaya çıkar.
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Caffè Verona -->
+                <div class="coffee-item">
+                    <span class="coffee-name">Caffè Verona® <span class="roast-tag roast-dark">Dark</span></span>
+                    <p class="tasting-notes">Bitter kakao ve kavrulmuş tatlılık. "Aşk Kahvesi".</p>
+                    <div class="brew-note-box">
+                        <div class="note-header">💡 MİNİ NOT</div>
+                        <div class="note-text">
+                            <span class="recommended-method">Öneri: French Press</span><br>
+                            Çikolatalı tatlılarla eşleşmesi için yoğun gövdeli demlenmelidir.
+                        </div>
+                    </div>
+                </div>
+
+                 <!-- Italian Roast -->
+                 <div class="coffee-item">
+                    <span class="coffee-name">Italian Roast <span class="roast-tag roast-dark">Dark</span></span>
+                    <p class="tasting-notes">Kavruk, yoğun ve hafif tatlı. Espresso Roast'tan biraz daha koyu.</p>
+                    <div class="brew-note-box">
+                        <div class="note-header">💡 MİNİ NOT</div>
+                        <div class="note-text">
+                            <span class="recommended-method">Öneri: Moka Pot / Espresso</span><br>
+                            İtalyan tarzı yoğunluk arayanlar için. Sütlü içeceklerde kahve tadını baskın kılar.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Footer Legend -->
+    <footer class="footer-guide">
+        <div class="guide-content">
+            <div class="footer-split">
+                <!-- Methods Section -->
+                <div class="methods-section">
+                    <h3 style="color:var(--sb-dark); margin-top:0;">Demleme Yöntemleri Sözlüğü</h3>
+                    <div class="methods-row">
+                        <div class="method-col">
+                            <span class="method-icon">⚗️</span>
+                            <span class="method-title">French Press</span>
+                            <span class="method-desc">Metal filtre. Yağları geçirir. <strong>Yoğun ve gövdeli</strong> kahve sevenler için.</span>
+                        </div>
+                        <div class="method-col">
+                            <span class="method-icon">🧪</span>
+                            <span class="method-title">Chemex / Pour-Over</span>
+                            <span class="method-desc">Kalın kağıt filtre. Tortuyu tutar. <strong>Berrak ve aromatik</strong> tatlar için.</span>
+                        </div>
+                        <div class="method-col">
+                            <span class="method-icon">☕</span>
+                            <span class="method-title">Filtre Makinesi</span>
+                            <span class="method-desc">Standart demleme. <strong>Dengeli ve tutarlı</strong> bir fincan için.</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- QR Code Section -->
+                <div class="qr-section">
+                    <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=https://starbucksglobalacademy.com/coffee-academy/" alt="Starbucks Academy QR" class="qr-img">
+                    <div class="qr-text">
+                        <h4>Dijital Akademi</h4>
+                        <p>Kahve uzmanı olmak için bu kodu telefonunuzla taratın ve ücretsiz eğitimlere katılın.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        function showRegion(regionId) {
+            // 1. Reset all active states on map
+            document.querySelectorAll('.continent').forEach(el => {
+                el.classList.remove('active');
+            });
+
+            // 2. Set active state for clicked region if it's a map region
+            if (regionId !== 'blends') {
+                const clickedMapId = regionId === 'latin' ? 'latin-america' : 
+                                     regionId === 'africa' ? 'africa' : 'asia-pacific';
+                document.getElementById(clickedMapId).classList.add('active');
+                document.getElementById('blend-btn').classList.remove('active');
+            } else {
+                document.getElementById('blend-btn').classList.add('active');
+            }
+
+            // 3. Hide all cards
+            document.querySelectorAll('.info-card').forEach(card => {
+                card.classList.remove('active');
+                card.style.display = 'none'; // Force hide to re-trigger anim
+            });
+
+            // 4. Hide placeholder
+            document.getElementById('placeholder').style.display = 'none';
+
+            // 5. Show specific card with slight delay for smooth feel
+            const cardId = 'card-' + regionId;
+            const card = document.getElementById(cardId);
+            
+            setTimeout(() => {
+                card.style.display = 'block';
+                // Trigger reflow
+                void card.offsetWidth; 
+                card.classList.add('active');
+                
+                // Scroll to content gently
+                card.scrollIntoView({behavior: 'smooth', block: 'start'});
+            }, 50);
+        }
+    </script>
+</body>
+</html>
