@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Starbucks Global Brew Map</title>
+    <title>Starbucks Brew Map & AI Barista</title>
     
     <style>
         :root {
@@ -197,6 +197,139 @@
             color: var(--sb-dark);
         }
 
+        /* AI Barista Section Styles */
+        .ai-barista-section {
+            width: 90%;
+            max-width: 800px;
+            margin: 20px auto 40px auto;
+            background: linear-gradient(135deg, #1e3932 0%, #00704A 100%);
+            border-radius: 20px;
+            padding: 30px;
+            color: white;
+            box-shadow: 0 10px 30px rgba(0, 112, 74, 0.2);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .ai-barista-section::before {
+            content: "✨";
+            position: absolute;
+            top: -20px;
+            right: -20px;
+            font-size: 150px;
+            opacity: 0.1;
+            pointer-events: none;
+        }
+
+        .ai-header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .ai-header h3 {
+            margin: 0;
+            font-size: 1.5rem;
+            color: var(--sb-gold);
+        }
+
+        .ai-input-wrapper {
+            display: flex;
+            gap: 10px;
+            background: rgba(255,255,255,0.1);
+            padding: 5px;
+            border-radius: 12px;
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+
+        .ai-input {
+            flex: 1;
+            background: transparent;
+            border: none;
+            color: white;
+            padding: 15px;
+            font-size: 1rem;
+            outline: none;
+        }
+
+        .ai-input::placeholder {
+            color: rgba(255,255,255,0.6);
+        }
+
+        .ai-button {
+            background-color: var(--sb-gold);
+            color: var(--sb-dark);
+            border: none;
+            padding: 10px 25px;
+            border-radius: 8px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: transform 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .ai-button:hover {
+            transform: scale(1.05);
+            background-color: #dcb670;
+        }
+
+        .ai-button:disabled {
+            opacity: 0.7;
+            cursor: wait;
+        }
+
+        /* Quick Prompts Chips */
+        .quick-prompts {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+            flex-wrap: wrap;
+        }
+
+        .chip-btn {
+            background: rgba(255,255,255,0.2);
+            border: 1px solid rgba(255,255,255,0.3);
+            color: white;
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .chip-btn:hover {
+            background: rgba(255,255,255,0.4);
+            transform: translateY(-2px);
+        }
+
+        .ai-response {
+            margin-top: 20px;
+            padding: 20px;
+            background: rgba(255,255,255,0.95);
+            color: var(--text-color);
+            border-radius: 12px;
+            line-height: 1.6;
+            display: none;
+            border-left: 5px solid var(--sb-gold);
+            animation: fadeIn 0.5s ease;
+        }
+
+        .ai-loading {
+            display: none;
+            margin-top: 15px;
+            font-style: italic;
+            color: rgba(255,255,255,0.8);
+            text-align: center;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
         /* Content Display Area */
         .content-area {
             width: 90%;
@@ -235,10 +368,51 @@
             gap: 10px;
         }
 
+        /* Gemini Feature: Region Story Button */
+        .story-btn {
+            background: linear-gradient(135deg, #cba258, #eac784);
+            border: none;
+            color: #1e3932;
+            padding: 6px 15px;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            cursor: pointer;
+            margin-left: 15px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            transition: transform 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            vertical-align: middle;
+        }
+
+        .story-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+
+        .story-content {
+            background-color: #fcfcfc;
+            border: 1px dashed var(--sb-gold);
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+            font-style: italic;
+            color: #555;
+            display: none;
+            animation: fadeIn 0.5s;
+            font-size: 0.95rem;
+            width: 100%;
+        }
+
         .region-title {
             font-size: 1.8rem;
             color: var(--sb-dark);
             font-weight: 700;
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
         }
 
         .taste-badge {
@@ -255,7 +429,7 @@
         /* Coffee Grid */
         .coffee-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
             gap: 25px;
         }
 
@@ -266,11 +440,33 @@
             padding: 20px;
             position: relative;
             transition: transform 0.2s;
+            display: flex;
+            align-items: flex-start;
+            gap: 15px;
         }
         
         .coffee-item:hover {
             transform: translateY(-3px);
             box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        }
+
+        /* YENİ: Kahve Görseli Stili (Resim dosyası için) */
+        .coffee-img {
+            width: 80px;
+            height: 120px;
+            flex-shrink: 0;
+            object-fit: contain; /* Resmin orantısını korur */
+            filter: drop-shadow(0 4px 6px rgba(0,0,0,0.2));
+            background-color: #eaddcf; /* Yüklenmezse görünecek kahve tonu */
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+        }
+
+        .coffee-content {
+            flex: 1;
         }
 
         .coffee-name {
@@ -456,6 +652,12 @@
                 justify-content: center;
                 text-align: left;
             }
+            .ai-input-wrapper {
+                flex-direction: column;
+            }
+            .ai-button {
+                justify-content: center;
+            }
         }
 
     </style>
@@ -463,101 +665,171 @@
 <body>
 
     <header>
-        <h1>Starbucks Global Brew Map</h1>
+        <h1>Starbucks Brew Map</h1>
         <h2>Dünya Haritası Üzerinde Demleme Rehberi</h2>
         <div class="instruction">Keşfetmek için Haritada Bir Bölgeye Tıklayın veya Butonu Kullanın 👇</div>
     </header>
 
     <!-- Interactive Map Section -->
     <div class="map-wrapper">
-        <!-- Simplified World Map SVG -->
-        <svg viewBox="0 0 1000 500" xmlns="http://www.w3.org/2000/svg">
+        <!-- REALISTIC WORLD MAP WITH COFFEE BELT -->
+        <svg viewBox="0 0 1000 520" xmlns="http://www.w3.org/2000/svg" style="background-color: #eef5f2;">
             <defs>
-                <!-- Define the arrowhead marker -->
                 <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
                     <polygon points="0 0, 10 3.5, 0 7" fill="#cba258" />
                 </marker>
+                <!-- Pattern for Coffee Belt -->
+                <pattern id="beltPattern" patternUnits="userSpaceOnUse" width="10" height="10">
+                    <path d="M-1,1 l2,-2 M0,10 l10,-10 M9,11 l2,-2" stroke="#cba258" stroke-width="1" opacity="0.3"/>
+                </pattern>
             </defs>
 
-            <!-- LATIN AMERICA (Left) -->
+            <!-- 1. THE COFFEE BELT (Background Highlight) -->
+            <!-- Roughly between Tropic of Cancer (23.5 N) and Capricorn (23.5 S) -->
+            <rect x="0" y="180" width="1000" height="160" fill="url(#beltPattern)" fill-opacity="0.5" />
+            <line x1="0" y1="180" x2="1000" y2="180" stroke="#cba258" stroke-width="1" stroke-dasharray="5,5" opacity="0.5"/>
+            <line x1="0" y1="340" x2="1000" y2="340" stroke="#cba258" stroke-width="1" stroke-dasharray="5,5" opacity="0.5"/>
+            
+            <text x="50" y="175" font-size="10" fill="#cba258" font-style="italic">Yengeç Dönencesi (23.5°N)</text>
+            <text x="50" y="355" font-size="10" fill="#cba258" font-style="italic">Oğlak Dönencesi (23.5°S)</text>
+            <text x="500" y="330" font-size="30" fill="#cba258" opacity="0.15" font-weight="bold" text-anchor="middle" letter-spacing="10px">KAHVE KUŞAĞI</text>
+
+            <!-- 2. CONTINENTS (Realistic Paths) -->
+            
+            <!-- Non-Coffee Regions (For Context - Low Opacity) -->
+            <g id="north-america-north" class="continent-static" style="fill: #cadbc9; pointer-events: none;">
+                <!-- Canada/USA/Greenland rough path -->
+                <path d="M 150,50 L 300,40 L 400,20 L 350,150 L 250,150 L 100,100 Z" opacity="0.5" />
+                <path d="M 50,80 L 120,60 L 100,120 Z" opacity="0.5" /> <!-- Alaska -->
+            </g>
+            <g id="europe-russia" class="continent-static" style="fill: #cadbc9; pointer-events: none;">
+                <!-- Europe/Russia rough path -->
+                <path d="M 480,130 L 520,60 L 600,60 L 800,50 L 900,60 L 950,100 L 850,150 L 700,150 L 600,160 L 550,140 Z" opacity="0.5" />
+            </g>
+
+            <!-- LATIN AMERICA (Clickable) -->
             <g id="latin-america" class="continent" onclick="showRegion('latin')">
                 <title>Latin Amerika: Fındık & Kakao</title>
-                <!-- North America rough shape -->
-                <path d="M 150,50 L 250,50 L 280,100 L 200,150 L 180,200 L 220,220 L 200,300 L 150,250 L 100,150 Z" />
-                <!-- South America rough shape -->
-                <path d="M 220,220 L 300,220 L 350,280 L 300,400 L 250,450 L 220,350 Z" />
-                <text x="250" y="380" class="map-text" text-anchor="middle">LATIN AMERİKA</text>
+                <!-- Mexico & Central America -->
+                <path d="M 160,160 L 220,160 L 240,200 L 210,210 L 180,180 Z" /> 
+                <!-- South America -->
+                <path d="M 240,200 L 320,200 L 360,250 L 340,320 L 300,400 L 260,420 L 250,350 L 220,250 Z" />
+                
+                <text x="290" y="350" class="map-text" text-anchor="middle" style="fill:#fff; font-size:16px; text-shadow:0 1px 3px rgba(0,0,0,0.3);">LATIN AMERİKA</text>
                 
                 <!-- Pins -->
-                <circle cx="230" cy="240" r="6" class="pin"/>
-                <circle cx="230" cy="240" r="3" class="pin-inner"/>
+                <circle cx="230" cy="190" r="5" class="pin"/> <!-- Mexico/Guatemala -->
+                <circle cx="230" cy="190" r="2" class="pin-inner"/>
                 
-                <circle cx="260" cy="280" r="6" class="pin"/>
-                <circle cx="260" cy="280" r="3" class="pin-inner"/>
+                <circle cx="280" cy="240" r="5" class="pin"/> <!-- Brazil/Colombia -->
+                <circle cx="280" cy="240" r="2" class="pin-inner"/>
             </g>
 
-            <!-- AFRICA (Center) -->
+            <!-- AFRICA (Clickable) -->
             <g id="africa" class="continent" onclick="showRegion('africa')">
                 <title>Afrika: Çiçeksi & Narenciye</title>
-                <path d="M 450,150 L 550,150 L 580,200 L 550,350 L 500,400 L 450,300 L 420,200 Z" />
-                <!-- Arabian Peninsula bit -->
-                <path d="M 560,160 L 600,150 L 620,180 L 590,190 Z" />
-                <text x="500" y="320" class="map-text" text-anchor="middle">AFRİKA</text>
+                <!-- Africa Shape -->
+                <path d="M 460,160 L 540,160 L 580,190 L 600,250 L 580,350 L 520,380 L 480,300 L 450,220 Z" />
+                <!-- Madagascar -->
+                <path d="M 610,300 L 630,300 L 625,340 L 605,330 Z" />
+                <!-- Arabian Peninsula (Yemen) -->
+                <path d="M 550,160 L 600,150 L 620,180 L 580,190 Z" />
+
+                <text x="530" y="280" class="map-text" text-anchor="middle" style="fill:#fff; font-size:16px; text-shadow:0 1px 3px rgba(0,0,0,0.3);">AFRİKA</text>
 
                 <!-- Pins -->
-                <circle cx="560" cy="230" r="6" class="pin"/>
-                <circle cx="560" cy="230" r="3" class="pin-inner"/>
+                <circle cx="570" cy="230" r="5" class="pin"/> <!-- Ethiopia/Kenya -->
+                <circle cx="570" cy="230" r="2" class="pin-inner"/>
                 
-                <circle cx="540" cy="260" r="6" class="pin"/>
-                <circle cx="540" cy="260" r="3" class="pin-inner"/>
+                <circle cx="540" cy="250" r="5" class="pin"/> <!-- Rwanda/Burundi -->
+                <circle cx="540" cy="250" r="2" class="pin-inner"/>
             </g>
 
-            <!-- ASIA / PACIFIC (Right) -->
+            <!-- ASIA / PACIFIC (Clickable) -->
             <g id="asia-pacific" class="continent" onclick="showRegion('asia')">
                 <title>Asya/Pasifik: Baharatlı & Topraksı</title>
-                <!-- Asia rough shape -->
-                <path d="M 600,50 L 900,50 L 950,150 L 850,250 L 750,250 L 650,200 L 620,100 Z" />
-                <!-- Indonesia Islands rough -->
-                <path d="M 750,280 L 850,280 L 880,300 L 800,320 Z" />
-                <path d="M 820,300 L 840,290 L 850,310 Z" />
-                <!-- Australia -->
-                <path d="M 800,350 L 920,350 L 900,450 L 800,420 Z" />
+                <!-- India / SE Asia -->
+                <path d="M 650,180 L 750,180 L 800,220 L 780,260 L 700,240 L 660,200 Z" />
+                <!-- Indonesia / Sumatra / Java / Papua -->
+                <path d="M 720,270 L 880,270 L 920,300 L 850,320 L 750,300 Z" />
+                <!-- Australia (Top part in coffee belt technically, but usually represented as region) -->
+                <path d="M 820,340 L 950,340 L 940,450 L 800,440 L 780,380 Z" />
                 
-                <text x="850" y="380" class="map-text" text-anchor="middle">ASYA / PASİFİK</text>
+                <text x="820" y="250" class="map-text" text-anchor="middle" style="fill:#fff; font-size:16px; text-shadow:0 1px 3px rgba(0,0,0,0.3);">ASYA / PASİFİK</text>
 
                 <!-- Pins -->
-                <circle cx="780" cy="290" r="6" class="pin"/>
-                <circle cx="780" cy="290" r="3" class="pin-inner"/>
+                <circle cx="760" cy="285" r="5" class="pin"/> <!-- Sumatra -->
+                <circle cx="760" cy="285" r="2" class="pin-inner"/>
+                
+                <circle cx="900" cy="290" r="5" class="pin"/> <!-- Papua New Guinea -->
+                <circle cx="900" cy="290" r="2" class="pin-inner"/>
             </g>
 
-            <!-- VISUAL ANNOTATIONS (ARROWS & LABELS) -->
+            <!-- VISUAL ANNOTATIONS (Updated Coordinates) -->
             <g class="annotation-group">
                 <!-- Latin America Annotation -->
-                <!-- Arrow pointing from Pacific to Colombia/South America -->
-                <path class="annotation-arrow" d="M 90,320 Q 150,320 230,290" />
-                <text x="30" y="310" class="annotation-text">DENGELİ & FINDIKSI</text>
-                <text x="30" y="325" class="annotation-subtext">Kakao, Yumuşak Baharat</text>
+                <path class="annotation-arrow" d="M 120,300 Q 180,300 240,280" />
+                <text x="60" y="290" class="annotation-text">DENGELİ & FINDIKSI</text>
+                <text x="60" y="305" class="annotation-subtext">Kakao, Yumuşak Baharat</text>
 
                 <!-- Africa Annotation -->
-                <!-- Arrow pointing from South Atlantic to East Africa -->
-                <path class="annotation-arrow" d="M 400,430 Q 480,430 530,300" />
-                <text x="320" y="450" class="annotation-text">ÇİÇEKSİ & NARENCİYE</text>
-                <text x="340" y="465" class="annotation-subtext">Limon, Bergamot, Meyve</text>
+                <path class="annotation-arrow" d="M 420,400 Q 480,400 520,320" />
+                <text x="340" y="420" class="annotation-text">ÇİÇEKSİ & NARENCİYE</text>
+                <text x="360" y="435" class="annotation-subtext">Limon, Bergamot, Meyve</text>
 
                 <!-- Asia Annotation -->
-                <!-- Arrow pointing from Indian Ocean to Indonesia -->
-                <path class="annotation-arrow" d="M 660,380 Q 720,380 770,300" />
-                <text x="600" y="400" class="annotation-text">BAHARATLI & TOPRAKSI</text>
-                <text x="600" y="415" class="annotation-subtext">Yoğun Gövde, Sedir, Bitki</text>
+                <path class="annotation-arrow" d="M 950,200 Q 880,150 820,230" />
+                <text x="860" y="140" class="annotation-text" text-anchor="end">BAHARATLI & TOPRAKSI</text>
+                <text x="860" y="155" class="annotation-subtext" text-anchor="end">Yoğun Gövde, Sedir, Bitki</text>
             </g>
 
         </svg>
     </div>
 
+    <!-- AI Barista Section -->
+    <div class="ai-barista-section">
+        <div class="ai-header">
+            <span style="font-size: 2rem;">🤖☕</span>
+            <div>
+                <h3>Sanal Barista'ya Danışın</h3>
+                <small style="opacity: 0.8;">Gemini AI tarafından desteklenmektedir ✨</small>
+            </div>
+        </div>
+        
+        <div class="ai-input-wrapper">
+            <input type="text" id="user-taste" class="ai-input" placeholder="Örn: 'Sınavım var uyanık kalmalıyım' veya 'Cheesecake ile ne içilir?'">
+            <button onclick="askBarista()" id="ask-btn" class="ai-button">
+                <span>Tavsiye Al</span>
+                <span>✨</span>
+            </button>
+        </div>
+
+        <!-- Quick AI Prompts -->
+        <div class="quick-prompts">
+            <button class="chip-btn" onclick="fillAndAsk('Sabah uyanamıyorum, en sert kahve hangisi? 😴')">Sabah Ayılması ☀️</button>
+            <button class="chip-btn" onclick="fillAndAsk('Tatlı krizindeyim, çikolatalı bir şeyler önerir misin? 🍫')">Tatlı Krizi 🍫</button>
+            <button class="chip-btn" onclick="fillAndAsk('Midem hassas, yumuşak içimli bir kahve arıyorum. 🌿')">Yumuşak İçim 🌿</button>
+            <button class="chip-btn" onclick="fillAndAsk('Yeni başlayanlar için filtre kahve demleme tüyoları neler? ⚗️')">Demleme Tüyosu 🎓</button>
+        </div>
+        
+        <div id="ai-loading" class="ai-loading">Barista düşünüyor... ☕</div>
+        <div id="ai-response" class="ai-response"></div>
+    </div>
+
     <!-- Extra Blends Button -->
     <div class="blend-btn-container">
-        <button id="blend-btn" class="blend-btn" onclick="showRegion('blends')">
-            ☕ İmza Harmanlar & Dark Serisi
+        <button id="btn-singles" class="blend-btn" style="background-color: #00704A; border: 1px solid white;" onclick="showRegion('singles')">
+            🌍 Tek Kökenliler (Core)
+        </button>
+        <button id="btn-blends" class="blend-btn" onclick="showRegion('blends')">
+            ☕ Harman Kahveler (Blends)
+        </button>
+        <button id="btn-seasonal" class="blend-btn" style="background-color: #d50032; border: 1px solid white;" onclick="showRegion('seasonal')">
+            🎄 Dönemsel Harman Kahveler
+        </button>
+        <!-- YENİ BUTON: DEMLEME YÖNTEMLERİ -->
+        <button id="btn-brewing" class="blend-btn" style="background-color: #5d4037; border: 1px solid white;" onclick="showRegion('brewing')">
+            ⚗️ Demleme Yöntemleri
         </button>
     </div>
 
@@ -566,15 +838,19 @@
         
         <div id="placeholder" class="placeholder-message">
             <div class="placeholder-icon">☕</div>
-            Detaylı tadım notlarını ve demleme önerilerini görmek için yukarıdaki haritadan bir bölge seçin.
+            Detaylı tadım notlarını ve demleme önerilerini görmek için yukarıdaki haritadan bir bölge seçin veya butonları kullanın.
         </div>
 
         <!-- 1. LATIN AMERICA CARD (Updated with Turkey Market) -->
         <div id="card-latin" class="info-card">
             <div class="card-header-row">
                 <div>
-                    <div class="region-title">Latin Amerika</div>
+                    <div class="region-title">
+                        Latin Amerika
+                        <button class="story-btn" onclick="getRegionStory('Latin Amerika')">✨ Bölge Hikayesi</button>
+                    </div>
                     <div style="color:#666; font-size:0.9rem;">Meksika, Guatemala, Kosta Rika, Kolombiya</div>
+                    <div id="story-latin-amerika" class="story-content"></div>
                 </div>
                 <div class="taste-badge">Dengeli & Fındıksı 🌰</div>
             </div>
@@ -582,65 +858,81 @@
             <div class="coffee-grid">
                 <!-- Veranda Blend -->
                 <div class="coffee-item">
-                    <span class="coffee-name">Veranda Blend® <span class="roast-tag roast-blonde">Blonde</span></span>
-                    <p class="tasting-notes">Yumuşak kakao ve kavrulmuş malt notaları.</p>
-                    <div class="brew-note-box">
-                        <div class="note-header">💡 MİNİ NOT</div>
-                        <div class="note-text">
-                            <span class="recommended-method">Öneri: French Press (Kısa Süre)</span><br>
-                            Çok hafif olduğu için yanmamalı. 4 dakika yerine 3-3.5 dakika demleyin.
+                    <!-- Updated Placeholder: Darker Green Background for better visibility -->
+                    <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI4MCIgaGVpZ2h0PSIxMjAiIHZpZXdCb3g9IjAgMCA4MCAxMjAiPjxyZWN0IHdpZHRoPSI4MCIgaGVpZ2h0PSIxMjAiIGZpbGw9IiMxZTM5MzIiIHJ4PSI0IiByeT0iNCIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBkb21pbmFudC1iYXNlbGluZT0ibWlkZGxlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LXNpemU9IjMyIiBmaWxsPSIjZmZmZmZmIj7imJU8L3RleHQ+PC9zdmc+" alt="Veranda Blend" class="coffee-img">
+                    <div class="coffee-content">
+                        <span class="coffee-name">Veranda Blend® <span class="roast-tag roast-blonde">Blonde</span></span>
+                        <p class="tasting-notes">Yumuşak kakao ve kavrulmuş malt notaları.</p>
+                        <div class="brew-note-box">
+                            <div class="note-header">💡 MİNİ NOT</div>
+                            <div class="note-text">
+                                Hafif gövdesiyle günün her saati yumuşak bir içim sunar. Asiditesi düşüktür.
+                            </div>
+                            <div class="note-header" style="margin-top: 10px;">⚗️ DEMLEME ÖNERİSİ</div>
+                            <div class="note-text">
+                                Filtre Kahve Makinesi
+                            </div>
+                            <div class="note-header" style="margin-top: 10px;">🍪 TAMAMLAYICI LEZZET</div>
+                            <div class="note-text">
+                                Misto Cookie, Belçika Çikolatalı Pasta
+                            </div>
                         </div>
                     </div>
                 </div>
-
-                <!-- Pike Place -->
+                <!-- ... other latin items ... -->
+                 <!-- Pike Place -->
                 <div class="coffee-item">
-                    <span class="coffee-name">Pike Place® Roast <span class="roast-tag roast-medium">Medium</span></span>
-                    <p class="tasting-notes">Yumuşak, dengeli, kavrulmuş fındık ve kakao.</p>
-                    <div class="brew-note-box">
-                        <div class="note-header">💡 MİNİ NOT</div>
-                        <div class="note-text">
-                            <span class="recommended-method">Öneri: Filtre Kahve Makinesi</span><br>
-                            Gün boyu içim için tasarlanmış, en tutarlı kahvedir. Standart demleme ile en iyi sonucu verir.
+                    <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI4MCIgaGVpZ2h0PSIxMjAiIHZpZXdCb3g9IjAgMCA4MCAxMjAiPjxyZWN0IHdpZHRoPSI4MCIgaGVpZ2h0PSIxMjAiIGZpbGw9IiMxZTM5MzIiIHJ4PSI0IiByeT0iNCIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBkb21pbmFudC1iYXNlbGluZT0ibWlkZGxlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LXNpemU9IjMyIiBmaWxsPSIjZmZmZmZmIj7imJU8L3RleHQ+PC9zdmc+" alt="Pike Place Roast" class="coffee-img">
+                    <div class="coffee-content">
+                        <span class="coffee-name">Pike Place® Roast <span class="roast-tag roast-medium">Medium</span></span>
+                        <p class="tasting-notes">Yumuşak, dengeli, kavrulmuş fındık ve kakao.</p>
+                        <div class="brew-note-box">
+                            <div class="note-header">💡 MİNİ NOT</div>
+                            <div class="note-text">
+                                Starbucks'ın her gün tazelediği, en dengeli klasiktir. Pürüzsüz bir bitişi vardır.
+                            </div>
                         </div>
                     </div>
                 </div>
-
-                <!-- Guatemala Antigua -->
+                 <!-- Guatemala Antigua -->
                 <div class="coffee-item">
-                    <span class="coffee-name">Guatemala Antigua <span class="roast-tag roast-medium">Medium</span></span>
-                    <p class="tasting-notes">Limon, çikolata ve yumuşak baharatlar.</p>
-                    <div class="brew-note-box">
-                        <div class="note-header">💡 MİNİ NOT</div>
-                        <div class="note-text">
-                            <span class="recommended-method">Öneri: Pour-Over / V60</span><br>
-                            Karmaşık kakao ve baharat notalarını ayırt etmek için berrak bir demleme gerekir.
+                    <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI4MCIgaGVpZ2h0PSIxMjAiIHZpZXdCb3g9IjAgMCA4MCAxMjAiPjxyZWN0IHdpZHRoPSI4MCIgaGVpZ2h0PSIxMjAiIGZpbGw9IiMxZTM5MzIiIHJ4PSI0IiByeT0iNCIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBkb21pbmFudC1iYXNlbGluZT0ibWlkZGxlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LXNpemU9IjMyIiBmaWxsPSIjZmZmZmZmIj7imJU8L3RleHQ+PC9zdmc+" alt="Guatemala Antigua" class="coffee-img">
+                    <div class="coffee-content">
+                        <span class="coffee-name">Guatemala Antigua <span class="roast-tag roast-medium">Medium</span></span>
+                        <p class="tasting-notes">Limon, çikolata ve yumuşak baharatlar.</p>
+                        <div class="brew-note-box">
+                            <div class="note-header">💡 MİNİ NOT</div>
+                            <div class="note-text">
+                                Zarif ve katmanlıdır. Kakao tozu ve yumuşak baharat notalarıyla sofistike bir içim sunar.
+                            </div>
                         </div>
                     </div>
                 </div>
-
-                <!-- Colombia -->
+                 <!-- Colombia -->
                 <div class="coffee-item">
-                    <span class="coffee-name">Colombia <span class="roast-tag roast-medium">Medium</span></span>
-                    <p class="tasting-notes">Canlı, ceviz notaları ve bitkisel bir bitiş.</p>
-                    <div class="brew-note-box">
-                        <div class="note-header">💡 MİNİ NOT</div>
-                        <div class="note-text">
-                            <span class="recommended-method">Öneri: French Press</span><br>
-                            Cevizimsi gövdesini ve canlılığını korumak için metal filtre idealdir.
+                    <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI4MCIgaGVpZ2h0PSIxMjAiIHZpZXdCb3g9IjAgMCA4MCAxMjAiPjxyZWN0IHdpZHRoPSI4MCIgaGVpZ2h0PSIxMjAiIGZpbGw9IiMxZTM5MzIiIHJ4PSI0IiByeT0iNCIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBkb21pbmFudC1iYXNlbGluZT0ibWlkZGxlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LXNpemU9IjMyIiBmaWxsPSIjZmZmZmZmIj7imJU8L3RleHQ+PC9zdmc+" alt="Colombia" class="coffee-img">
+                    <div class="coffee-content">
+                        <span class="coffee-name">Colombia <span class="roast-tag roast-medium">Medium</span></span>
+                        <p class="tasting-notes">Canlı, ceviz notaları ve bitkisel bir bitiş.</p>
+                         <div class="brew-note-box">
+                            <div class="note-header">💡 MİNİ NOT</div>
+                            <div class="note-text">
+                                Cevizimsi ve taze. Orta gövdesiyle günün her saati için en güvenilir ve dengeli tercihtir.
+                            </div>
                         </div>
                     </div>
                 </div>
-
-                <!-- House Blend -->
+                 <!-- House Blend -->
                 <div class="coffee-item">
-                    <span class="coffee-name">House Blend <span class="roast-tag roast-medium">Medium</span></span>
-                    <p class="tasting-notes">Zengin, canlı ve dengeli. Fındık ve kakao.</p>
-                    <div class="brew-note-box">
-                        <div class="note-header">💡 MİNİ NOT</div>
-                        <div class="note-text">
-                            <span class="recommended-method">Öneri: Filtre Kahve / Pour-Over</span><br>
-                            Starbucks'ın ilk harmanıdır. Klasik kahve tadını en saf haliyle verir.
+                    <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI4MCIgaGVpZ2h0PSIxMjAiIHZpZXdCb3g9IjAgMCA4MCAxMjAiPjxyZWN0IHdpZHRoPSI4MCIgaGVpZ2h0PSIxMjAiIGZpbGw9IiMxZTM5MzIiIHJ4PSI0IiByeT0iNCIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBkb21pbmFudC1iYXNlbGluZT0ibWlkZGxlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LXNpemU9IjMyIiBmaWxsPSIjZmZmZmZmIj7imJU8L3RleHQ+PC9zdmc+" alt="House Blend" class="coffee-img">
+                    <div class="coffee-content">
+                        <span class="coffee-name">House Blend <span class="roast-tag roast-medium">Medium</span></span>
+                        <p class="tasting-notes">Zengin, canlı ve dengeli. Fındık ve kakao.</p>
+                         <div class="brew-note-box">
+                            <div class="note-header">💡 MİNİ NOT</div>
+                            <div class="note-text">
+                                1971'den beri değişmeyen tat. Fındık ve kakao notalarıyla tam bir klasiktir.
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -651,35 +943,29 @@
         <div id="card-africa" class="info-card">
             <div class="card-header-row">
                 <div>
-                    <div class="region-title">Afrika</div>
-                    <div style="color:#666; font-size:0.9rem;">Kenya, Etiyopya, Ruanda</div>
+                    <div class="region-title">
+                        Afrika
+                        <button class="story-btn" onclick="getRegionStory('Afrika')">✨ Bölge Hikayesi</button>
+                    </div>
+                    <div style="color:#666; font-size:0.9rem;">Etiyopya, Ruanda</div>
+                    <div id="story-afrika" class="story-content"></div>
                 </div>
                 <div class="taste-badge" style="background:#fff3e0; color:#e65100;">Çiçeksi & Narenciye 🍋</div>
             </div>
 
             <div class="coffee-grid">
-                <!-- Kenya -->
+                <!-- Ethiopia (Africa Card) -->
                 <div class="coffee-item">
-                    <span class="coffee-name">Kenya <span class="roast-tag roast-medium">Medium</span></span>
-                    <p class="tasting-notes">Parlak asidite, greyfurt ve frenk üzümü notaları.</p>
-                    <div class="brew-note-box">
-                        <div class="note-header">💡 MİNİ NOT</div>
-                        <div class="note-text">
-                            <span class="recommended-method">Öneri: Chemex veya Iced Pour-Over</span><br>
-                            Meyvemsi ve "şarabımsı" asiditeyi ortaya çıkarmak için tortusuz demleme şart. Buzlu da harikadır.
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Ethiopia -->
-                <div class="coffee-item">
-                    <span class="coffee-name">Ethiopia <span class="roast-tag roast-medium">Medium</span></span>
-                    <p class="tasting-notes">Bitter çikolata, biberimsi baharat ve tatlı narenciye.</p>
-                    <div class="brew-note-box">
-                        <div class="note-header">💡 MİNİ NOT</div>
-                        <div class="note-text">
-                            <span class="recommended-method">Öneri: V60 Pour-Over</span><br>
-                            Katmanlı bir kahvedir; hem limon hem çikolata tadını almak için hassas demleme gerekir.
+                    <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI4MCIgaGVpZ2h0PSIxMjAiIHZpZXdCb3g9IjAgMCA4MCAxMjAiPjxyZWN0IHdpZHRoPSI4MCIgaGVpZ2h0PSIxMjAiIGZpbGw9IiMxZTM5MzIiIHJ4PSI0IiByeT0iNCIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBkb21pbmFudC1iYXNlbGluZT0ibWlkZGxlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LXNpemU9IjMyIiBmaWxsPSIjZmZmZmZmIj7imJU8L3RleHQ+PC9zdmc+" alt="Ethiopia" class="coffee-img">
+                    <div class="coffee-content">
+                        <span class="coffee-name">Ethiopia <span class="roast-tag roast-medium">Medium</span></span>
+                        <p class="tasting-notes">Bitter çikolata, biberimsi baharat ve tatlı narenciye.</p>
+                        <div class="brew-note-box">
+                            <div class="note-header">💡 MİNİ NOT</div>
+                            <div class="note-text">
+                                <span class="recommended-method">Öneri: V60 Pour-Over</span><br>
+                                Katmanlı bir kahvedir; hem limon hem çikolata tadını almak için hassas demleme gerekir.
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -690,22 +976,29 @@
         <div id="card-asia" class="info-card">
             <div class="card-header-row">
                 <div>
-                    <div class="region-title">Asya / Pasifik</div>
+                     <div class="region-title">
+                        Asya / Pasifik
+                        <button class="story-btn" onclick="getRegionStory('Asya Pasifik')">✨ Bölge Hikayesi</button>
+                    </div>
                     <div style="color:#666; font-size:0.9rem;">Sumatra, Java, Papua Yeni Gine</div>
+                     <div id="story-asya-pasifik" class="story-content"></div>
                 </div>
                 <div class="taste-badge" style="background:#efebe9; color:#5d4037;">Topraksı & Baharatlı 🌿</div>
             </div>
 
             <div class="coffee-grid">
-                <!-- Sumatra -->
+                <!-- Sumatra (Asia Card) -->
                 <div class="coffee-item">
-                    <span class="coffee-name">Sumatra <span class="roast-tag roast-dark">Dark</span></span>
-                    <p class="tasting-notes">Dolgun gövde, dünyevi bitkisel notalar, düşük asidite.</p>
-                    <div class="brew-note-box">
-                        <div class="note-header">💡 MİNİ NOT</div>
-                        <div class="note-text">
-                            <span class="recommended-method">Öneri: French Press</span><br>
-                            Yağlı ve ağır yapısını hissetmek için metal filtre kullanın. Kağıt filtre tadını zayıflatır.
+                    <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI4MCIgaGVpZ2h0PSIxMjAiIHZpZXdCb3g9IjAgMCA4MCAxMjAiPjxyZWN0IHdpZHRoPSI4MCIgaGVpZ2h0PSIxMjAiIGZpbGw9IiMxZTM5MzIiIHJ4PSI0IiByeT0iNCIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBkb21pbmFudC1iYXNlbGluZT0ibWlkZGxlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LXNpemU9IjMyIiBmaWxsPSIjZmZmZmZmIj7imJU8L3RleHQ+PC9zdmc+" alt="Sumatra" class="coffee-img">
+                    <div class="coffee-content">
+                        <span class="coffee-name">Sumatra <span class="roast-tag roast-dark">Dark</span></span>
+                        <p class="tasting-notes">Dolgun gövde, dünyevi bitkisel notalar, düşük asidite.</p>
+                        <div class="brew-note-box">
+                            <div class="note-header">💡 MİNİ NOT</div>
+                            <div class="note-text">
+                                <span class="recommended-method">Öneri: French Press</span><br>
+                                Yağlı ve ağır yapısını hissetmek için metal filtre kullanın. Kağıt filtre tadını zayıflatır.
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -716,49 +1009,385 @@
         <div id="card-blends" class="info-card">
             <div class="card-header-row">
                 <div>
-                    <div class="region-title">İmza Harmanlar (Dark)</div>
-                    <div style="color:#666; font-size:0.9rem;">Çok Bölgeli (Multi-Region) Harmanlar</div>
+                    <div class="region-title">Harman Kahveler (Blends)</div>
+                    <div style="color:#666; font-size:0.9rem;">Ustalıkla Dengelenmiş Karışımlar</div>
                 </div>
-                <div class="taste-badge" style="background:#212121; color:#fff;">Yoğun & Tatlı 🔥</div>
+                <div class="taste-badge" style="background:#212121; color:#fff;">Dengeli & Zengin ☕</div>
             </div>
 
             <div class="coffee-grid">
-                <!-- Espresso Roast -->
+                 <!-- Veranda (Blends Card) -->
                 <div class="coffee-item">
-                    <span class="coffee-name">Espresso Roast <span class="roast-tag roast-dark">Dark</span></span>
-                    <p class="tasting-notes">Yoğun, karamelize şeker tatlılığı. Starbucks'ın kalbi.</p>
-                    <div class="brew-note-box">
-                        <div class="note-header">💡 MİNİ NOT</div>
-                        <div class="note-text">
-                            <span class="recommended-method">Öneri: Espresso Makinesi / Moka Pot</span><br>
-                            Basınçlı demleme için tasarlanmıştır. Kremamsı yapısı ve karamel tadı ancak basınçla ortaya çıkar.
+                    <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI4MCIgaGVpZ2h0PSIxMjAiIHZpZXdCb3g9IjAgMCA4MCAxMjAiPjxyZWN0IHdpZHRoPSI4MCIgaGVpZ2h0PSIxMjAiIGZpbGw9IiMxZTM5MzIiIHJ4PSI0IiByeT0iNCIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBkb21pbmFudC1iYXNlbGluZT0ibWlkZGxlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LXNpemU9IjMyIiBmaWxsPSIjZmZmZmZmIj7imJU8L3RleHQ+PC9zdmc+" alt="Veranda Blend" class="coffee-img">
+                    <div class="coffee-content">
+                        <span class="coffee-name">Veranda Blend® <span class="roast-tag roast-blonde">Blonde</span></span>
+                        <p class="tasting-notes">Yumuşak kakao ve kavrulmuş malt notaları.</p>
+                         <div class="brew-note-box">
+                            <div class="note-header">💡 MİNİ NOT</div>
+                            <div class="note-text">
+                                Hafif gövdesiyle günün her saati yumuşak bir içim sunar. Asiditesi düşüktür.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                 <!-- Pike Place (Blends Card) -->
+                <div class="coffee-item">
+                    <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI4MCIgaGVpZ2h0PSIxMjAiIHZpZXdCb3g9IjAgMCA4MCAxMjAiPjxyZWN0IHdpZHRoPSI4MCIgaGVpZ2h0PSIxMjAiIGZpbGw9IiMxZTM5MzIiIHJ4PSI0IiByeT0iNCIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBkb21pbmFudC1iYXNlbGluZT0ibWlkZGxlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LXNpemU9IjMyIiBmaWxsPSIjZmZmZmZmIj7imJU8L3RleHQ+PC9zdmc+" alt="Pike Place Roast" class="coffee-img">
+                    <div class="coffee-content">
+                        <span class="coffee-name">Pike Place® Roast <span class="roast-tag roast-medium">Medium</span></span>
+                        <p class="tasting-notes">Yumuşak, dengeli, kavrulmuş fındık ve kakao.</p>
+                        <div class="brew-note-box">
+                            <div class="note-header">💡 MİNİ NOT</div>
+                            <div class="note-text">
+                                Starbucks'ın her gün tazelediği, en dengeli klasiktir. Pürüzsüz bir bitişi vardır.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                 <!-- House Blend (Blends Card) -->
+                <div class="coffee-item">
+                    <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI4MCIgaGVpZ2h0PSIxMjAiIHZpZXdCb3g9IjAgMCA4MCAxMjAiPjxyZWN0IHdpZHRoPSI4MCIgaGVpZ2h0PSIxMjAiIGZpbGw9IiMxZTM5MzIiIHJ4PSI0IiByeT0iNCIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBkb21pbmFudC1iYXNlbGluZT0ibWlkZGxlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LXNpemU9IjMyIiBmaWxsPSIjZmZmZmZmIj7imJU8L3RleHQ+PC9zdmc+" alt="House Blend" class="coffee-img">
+                    <div class="coffee-content">
+                        <span class="coffee-name">House Blend <span class="roast-tag roast-medium">Medium</span></span>
+                        <p class="tasting-notes">Zengin, canlı ve dengeli. Fındık ve kakao.</p>
+                         <div class="brew-note-box">
+                            <div class="note-header">💡 MİNİ NOT</div>
+                            <div class="note-text">
+                                1971'den beri değişmeyen tat. Fındık ve kakao notalarıyla tam bir klasiktir.
+                            </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Caffè Verona -->
+                <!-- Espresso Roast (Blends Card) -->
                 <div class="coffee-item">
-                    <span class="coffee-name">Caffè Verona® <span class="roast-tag roast-dark">Dark</span></span>
-                    <p class="tasting-notes">Bitter kakao ve kavrulmuş tatlılık. "Aşk Kahvesi".</p>
-                    <div class="brew-note-box">
-                        <div class="note-header">💡 MİNİ NOT</div>
-                        <div class="note-text">
-                            <span class="recommended-method">Öneri: French Press</span><br>
-                            Çikolatalı tatlılarla eşleşmesi için yoğun gövdeli demlenmelidir.
+                    <img src="starbucks-250-g-starbucks-espresso-roa--bba0-.jpg" 
+                         onerror="this.src='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI4MCIgaGVpZ2h0PSIxMjAiIHZpZXdCb3g9IjAgMCA4MCAxMjAiPjxyZWN0IHdpZHRoPSI4MCIgaGVpZ2h0PSIxMjAiIGZpbGw9IiMxZTM5MzIiIHJ4PSI0IiByeT0iNCIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBkb21pbmFudC1iYXNlbGluZT0ibWlkZGxlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LXNpemU9IjMyIiBmaWxsPSIjZmZmZmZmIj7imJU8L3RleHQ+PC9zdmc+'"
+                         alt="Espresso Roast" class="coffee-img">
+                    <div class="coffee-content">
+                        <span class="coffee-name">Espresso Roast <span class="roast-tag roast-dark">Dark</span></span>
+                        <p class="tasting-notes">Yoğun, karamelize şeker tatlılığı. Starbucks'ın kalbi.</p>
+                        <div class="brew-note-box">
+                            <div class="note-header">💡 MİNİ NOT</div>
+                            <div class="note-text">
+                                Basınçlı demleme için tasarlanmıştır. Kremamsı yapısı ve karamel tadı ancak basınçla ortaya çıkar.
+                            </div>
+                            <div class="note-header" style="margin-top: 10px;">⚗️ DEMLEME ÖNERİSİ</div>
+                            <div class="note-text">
+                                Espresso Makinesi veya Moka Pot
+                            </div>
+                            <div class="note-header" style="margin-top: 10px;">🍪 TAMAMLAYICI LEZZET</div>
+                            <div class="note-text">
+                                Karamel Waffle, Starbucks Brownie
+                            </div>
                         </div>
                     </div>
                 </div>
 
-                 <!-- Italian Roast -->
-                 <div class="coffee-item">
-                    <span class="coffee-name">Italian Roast <span class="roast-tag roast-dark">Dark</span></span>
-                    <p class="tasting-notes">Kavruk, yoğun ve hafif tatlı. Espresso Roast'tan biraz daha koyu.</p>
-                    <div class="brew-note-box">
-                        <div class="note-header">💡 MİNİ NOT</div>
-                        <div class="note-text">
-                            <span class="recommended-method">Öneri: Moka Pot / Espresso</span><br>
-                            İtalyan tarzı yoğunluk arayanlar için. Sütlü içeceklerde kahve tadını baskın kılar.
+                <!-- Decaf Espresso Roast (Blends Card) -->
+                <div class="coffee-item">
+                    <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI4MCIgaGVpZ2h0PSIxMjAiIHZpZXdCb3g9IjAgMCA4MCAxMjAiPjxyZWN0IHdpZHRoPSI4MCIgaGVpZ2h0PSIxMjAiIGZpbGw9IiMxZTM5MzIiIHJ4PSI0IiByeT0iNCIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBkb21pbmFudC1iYXNlbGluZT0ibWlkZGxlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LXNpemU9IjMyIiBmaWxsPSIjZmZmZmZmIj7imJU8L3RleHQ+PC9zdmc+" alt="Decaf Espresso Roast" class="coffee-img">
+                    <div class="coffee-content">
+                        <span class="coffee-name">Decaf Espresso Roast <span class="roast-tag roast-dark">Dark</span></span>
+                        <p class="tasting-notes">Yoğun, karamelize şeker tatlılığı. Kafeinsiz versiyon.</p>
+                         <div class="brew-note-box">
+                            <div class="note-header">💡 MİNİ NOT</div>
+                            <div class="note-text">
+                                Kafeinsiz olmasına rağmen Espresso Roast'un tüm yoğunluğunu ve derinliğini korur.
+                            </div>
                         </div>
+                    </div>
+                </div>
+
+                <!-- Caffè Verona (Blends Card) -->
+                <div class="coffee-item">
+                    <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI4MCIgaGVpZ2h0PSIxMjAiIHZpZXdCb3g9IjAgMCA4MCAxMjAiPjxyZWN0IHdpZHRoPSI4MCIgaGVpZ2h0PSIxMjAiIGZpbGw9IiMxZTM5MzIiIHJ4PSI0IiByeT0iNCIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBkb21pbmFudC1iYXNlbGluZT0ibWlkZGxlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LXNpemU9IjMyIiBmaWxsPSIjZmZmZmZmIj7imJU8L3RleHQ+PC9zdmc+" alt="Caffè Verona" class="coffee-img">
+                    <div class="coffee-content">
+                        <span class="coffee-name">Caffè Verona® <span class="roast-tag roast-dark">Dark</span></span>
+                        <p class="tasting-notes">Bitter kakao ve kavrulmuş tatlılık. "Aşk Kahvesi".</p>
+                        <div class="brew-note-box">
+                            <div class="note-header">💡 MİNİ NOT</div>
+                            <div class="note-text">
+                                Çok gövdeli ve yoğundur. Yemek sonrası tatlı kahvesi olarak mükemmeldir.
+                            </div>
+                            <div class="note-header" style="margin-top: 10px;">⚗️ DEMLEME ÖNERİSİ</div>
+                            <div class="note-text">
+                                French Press
+                            </div>
+                            <div class="note-header" style="margin-top: 10px;">🍪 TAMAMLAYICI LEZZET</div>
+                            <div class="note-text">
+                                Tiramisu, Belçika Çikolatalı Pasta
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- NEW: SINGLE ORIGINS CARD -->
+        <div id="card-singles" class="info-card">
+            <div class="card-header-row">
+                <div>
+                    <div class="region-title">
+                        Tek Kökenli Kahveler
+                        <button class="story-btn" onclick="getRegionStory('Tek Kökenli Kahveler')">✨ Bölge Hikayesi</button>
+                    </div>
+                    <div style="color:#666; font-size:0.9rem;">Belirli bir bölge veya ülkeden gelen saf lezzetler</div>
+                    <!-- EKSİK OLAN KISIM EKLENDİ: Hikaye Kutusu -->
+                    <div id="story-singles" class="story-content"></div>
+                </div>
+                <div class="taste-badge" style="background-color: #00704A; color: white;">Single Origin 🌍</div>
+            </div>
+
+            <div class="coffee-grid">
+                <!-- Guatemala Antigua (Single) -->
+                <div class="coffee-item">
+                    <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI4MCIgaGVpZ2h0PSIxMjAiIHZpZXdCb3g9IjAgMCA4MCAxMjAiPjxyZWN0IHdpZHRoPSI4MCIgaGVpZ2h0PSIxMjAiIGZpbGw9IiMxZTM5MzIiIHJ4PSI0IiByeT0iNCIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBkb21pbmFudC1iYXNlbGluZT0ibWlkZGxlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LXNpemU9IjMyIiBmaWxsPSIjZmZmZmZmIj7imJU8L3RleHQ+PC9zdmc+" alt="Guatemala Antigua" class="coffee-img">
+                    <div class="coffee-content">
+                        <span class="coffee-name">Guatemala Antigua <span class="roast-tag roast-medium">Medium</span></span>
+                        <p class="tasting-notes">Limon, çikolata ve yumuşak baharatlar.</p>
+                         <div class="brew-note-box">
+                            <div class="note-header">💡 MİNİ NOT</div>
+                            <div class="note-text">
+                                Zarif ve katmanlıdır. Kakao tozu ve yumuşak baharat notalarıyla sofistike bir içim sunar.
+                            </div>
+                            <div class="note-header" style="margin-top: 10px;">⚗️ DEMLEME ÖNERİSİ</div>
+                            <div class="note-text">
+                                Filtre Kahve veya French Press
+                            </div>
+                            <div class="note-header" style="margin-top: 10px;">🍪 TAMAMLAYICI LEZZET</div>
+                            <div class="note-text">
+                                Bitter Çikolata, Karamelli Tatlılar
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Colombia (Single) -->
+                <div class="coffee-item">
+                    <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI4MCIgaGVpZ2h0PSIxMjAiIHZpZXdCb3g9IjAgMCA4MCAxMjAiPjxyZWN0IHdpZHRoPSI4MCIgaGVpZ2h0PSIxMjAiIGZpbGw9IiMxZTM5MzIiIHJ4PSI0IiByeT0iNCIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBkb21pbmFudC1iYXNlbGluZT0ibWlkZGxlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LXNpemU9IjMyIiBmaWxsPSIjZmZmZmZmIj7imJU8L3RleHQ+PC9zdmc+" alt="Colombia" class="coffee-img">
+                    <div class="coffee-content">
+                        <span class="coffee-name">Colombia <span class="roast-tag roast-medium">Medium</span></span>
+                        <p class="tasting-notes">Canlı, ceviz notaları ve bitkisel bir bitiş.</p>
+                         <div class="brew-note-box">
+                            <div class="note-header">💡 MİNİ NOT</div>
+                            <div class="note-text">
+                                Cevizimsi ve taze. Orta gövdesiyle günün her saati için en güvenilir ve dengeli tercihtir.
+                            </div>
+                            <div class="note-header" style="margin-top: 10px;">⚗️ DEMLEME ÖNERİSİ</div>
+                            <div class="note-text">
+                                Filtre Kahve Makinesi veya V60
+                            </div>
+                            <div class="note-header" style="margin-top: 10px;">🍪 TAMAMLAYICI LEZZET</div>
+                            <div class="note-text">
+                                Cevizli Kek, Sütlü Çikolata
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Ethiopia -->
+                <div class="coffee-item">
+                    <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI4MCIgaGVpZ2h0PSIxMjAiIHZpZXdCb3g9IjAgMCA4MCAxMjAiPjxyZWN0IHdpZHRoPSI4MCIgaGVpZ2h0PSIxMjAiIGZpbGw9IiMxZTM5MzIiIHJ4PSI0IiByeT0iNCIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBkb21pbmFudC1iYXNlbGluZT0ibWlkZGxlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LXNpemU9IjMyIiBmaWxsPSIjZmZmZmZmIj7imJU8L3RleHQ+PC9zdmc+" alt="Ethiopia" class="coffee-img">
+                    <div class="coffee-content">
+                        <span class="coffee-name">Ethiopia <span class="roast-tag roast-medium">Medium</span></span>
+                        <p class="tasting-notes">Bitter çikolata, biberimsi baharat ve tatlı narenciye.</p>
+                         <div class="brew-note-box">
+                            <div class="note-header">💡 MİNİ NOT</div>
+                            <div class="note-text">
+                                Kahvenin doğum yeri. Kadifemsi dokusu ve biberimsi baharat notalarıyla egzotiktir.
+                            </div>
+                            <div class="note-header" style="margin-top: 10px;">⚗️ DEMLEME ÖNERİSİ</div>
+                            <div class="note-text">
+                                Chemex veya V60 Pour-Over (Soğuk demleme için de harika!)
+                            </div>
+                            <div class="note-header" style="margin-top: 10px;">🍪 TAMAMLAYICI LEZZET</div>
+                            <div class="note-text">
+                                Limonlu Kek, Bitter Çikolata
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sumatra -->
+                <div class="coffee-item">
+                    <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI4MCIgaGVpZ2h0PSIxMjAiIHZpZXdCb3g9IjAgMCA4MCAxMjAiPjxyZWN0IHdpZHRoPSI4MCIgaGVpZ2h0PSIxMjAiIGZpbGw9IiMxZTM5MzIiIHJ4PSI0IiByeT0iNCIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBkb21pbmFudC1iYXNlbGluZT0ibWlkZGxlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LXNpemU9IjMyIiBmaWxsPSIjZmZmZmZmIj7imJU8L3RleHQ+PC9zdmc+" alt="Sumatra" class="coffee-img">
+                    <div class="coffee-content">
+                        <span class="coffee-name">Sumatra <span class="roast-tag roast-dark">Dark</span></span>
+                        <p class="tasting-notes">Ağızda pürüzsüz hissedilen, dolgun gövdeli, bitkisel aromalı bir kahve.</p>
+                         <div class="brew-note-box">
+                            <div class="note-header">💡 MİNİ NOT</div>
+                            <div class="note-text">
+                                Yarı yıkanmış işleme yöntemiyle, düşük asiditeli ve dolgun gövdelidir.
+                            </div>
+                            <div class="note-header" style="margin-top: 10px;">⚗️ DEMLEME ÖNERİSİ</div>
+                            <div class="note-text">
+                                French Press (Yağlı dokusunu en iyi bu yöntem ortaya çıkarır)
+                            </div>
+                            <div class="note-header" style="margin-top: 10px;">🍪 TAMAMLAYICI LEZZET</div>
+                            <div class="note-text">
+                                Tarçınlı Çörek, Peynirli Tabaklar, Tuzlu Krakerler
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 6. SEASONAL BLENDS CARD -->
+        <div id="card-seasonal" class="info-card">
+            <div class="card-header-row">
+                <div>
+                    <div class="region-title">Dönemsel Harman Kahveler</div>
+                    <div style="color:#666; font-size:0.9rem;">Yılın belirli zamanlarında gelen özel lezzetler</div>
+                </div>
+                <div class="taste-badge" style="background:#d50032; color:#fff;">Sınırlı Süre & Özel 🌟</div>
+            </div>
+
+            <div class="coffee-grid">
+                <!-- Holiday Blend -->
+                <div class="coffee-item">
+                    <img src="starbucks-250-g-holiday-blend-2025-111-523faf.png.jpeg" 
+                         onerror="this.src='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI4MCIgaGVpZ2h0PSIxMjAiIHZpZXdCb3g9IjAgMCA4MCAxMjAiPjxyZWN0IHdpZHRoPSI4MCIgaGVpZ2h0PSIxMjAiIGZpbGw9IiMxZTM5MzIiIHJ4PSI0IiByeT0iNCIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBkb21pbmFudC1iYXNlbGluZT0ibWlkZGxlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LXNpemU9IjMyIiBmaWxsPSIjZmZmZmZmIj7imJU8L3RleHQ+PC9zdmc+'"
+                         alt="Holiday Blend" class="coffee-img">
+                    <div class="coffee-content">
+                        <span class="coffee-name">Holiday Blend <span class="roast-tag roast-dark">Dark</span></span>
+                        <p class="tasting-notes">Baharatlı çikolata ve ladin esintileri.</p>
+                        <div class="brew-note-box">
+                            <div class="note-header">💡 MİNİ NOT</div>
+                            <div class="note-text">
+                                Holiday Blend, Sumatra'dan gelen mükemmel şekilde olgunlaştırılmış çekirdekleri Asya/Pasifik, Guatemala ve Kolombiya'dan gelen koyu kavrulmuş kahve ile bir araya getiren bir kavurma sonrası harmanıdır. Bitkiler, baharatlar ve zengin çikolata aromasıyla her yudumda sezonun büyüsünü yakalar.
+                            </div>
+                            <div class="note-header" style="margin-top: 10px;">⚗️ DEMLEME ÖNERİSİ</div>
+                            <div class="note-text">
+                                Filtre Kahve Makinesi veya Chemex
+                            </div>
+                            <div class="note-header" style="margin-top: 10px;">🍪 TAMAMLAYICI LEZZET</div>
+                            <div class="note-text">
+                                Havuçlu Kek, Starbucks Brownie
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Holiday Blend Blonde -->
+                <div class="coffee-item">
+                    <img src="starbucks-250-g-holiday-blonde-2025-11-74ce5-.png.jpeg" 
+                         onerror="this.src='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI4MCIgaGVpZ2h0PSIxMjAiIHZpZXdCb3g9IjAgMCA4MCAxMjAiPjxyZWN0IHdpZHRoPSI4MCIgaGVpZ2h0PSIxMjAiIGZpbGw9IiMxZTM5MzIiIHJ4PSI0IiByeT0iNCIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBkb21pbmFudC1iYXNlbGluZT0ibWlkZGxlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LXNpemU9IjMyIiBmaWxsPSIjZmZmZmZmIj7imJU8L3RleHQ+PC9zdmc+'"
+                         alt="Holiday Blend Blonde" class="coffee-img">
+                    <div class="coffee-content">
+                        <span class="coffee-name">Holiday Blend Blonde <span class="roast-tag roast-blonde">Blonde</span></span>
+                        <p class="tasting-notes">Portakal ve incir kompostosu.</p>
+                        <div class="brew-note-box">
+                            <div class="note-header">💡 MİNİ NOT</div>
+                            <div class="note-text">
+                                Starbucks® Holiday Blonde, yılbaşı kahvemize daha hafif bir yorum getiriyor. Canlı, meyveli ve hafif baharatlı tadı, yılbaşı lezzetleriyle mükemmel bir uyum sağlıyor.
+                            </div>
+                            <div class="note-header" style="margin-top: 10px;">⚗️ DEMLEME ÖNERİSİ</div>
+                            <div class="note-text">
+                                Pour-Over veya V60
+                            </div>
+                            <div class="note-header" style="margin-top: 10px;">🍪 TAMAMLAYICI LEZZET</div>
+                            <div class="note-text">
+                                Yaban Mersinli Mus, Salted Caramel Cheesecake
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- YENİ KART: DEMLEME YÖNTEMLERİ (BREWING METHODS) -->
+        <div id="card-brewing" class="info-card">
+            <div class="card-header-row">
+                <div>
+                    <div class="region-title">Demleme Rehberi</div>
+                    <div style="color:#666; font-size:0.9rem;">Mükemmel fincan için adım adım teknikler</div>
+                </div>
+                <div class="taste-badge" style="background:#5d4037; color:#fff;">Barista Sırları 🤫</div>
+            </div>
+
+            <div class="coffee-grid">
+                <!-- Method 1: French Press -->
+                <div class="coffee-item" style="display:block;">
+                    <div style="display:flex; align-items:center; gap:15px; margin-bottom:15px;">
+                        <div style="font-size:2.5rem;">⚗️</div>
+                        <div>
+                            <span class="coffee-name" style="margin:0;">French Press (Coffee Press)</span>
+                            <span class="roast-tag" style="background:#5d4037;">Yoğun & Gövdeli</span>
+                        </div>
+                    </div>
+                    <p class="tasting-notes">Kahvenin doğal yağlarını korur, tortulu ve yoğun bir tat sunar.</p>
+                    <div class="brew-note-box">
+                        <div class="note-header">ADIM ADIM</div>
+                        <ul class="note-text" style="padding-left:20px; margin:0;">
+                            <li><strong>Öğütme:</strong> Kalın (Deniz tuzu gibi).</li>
+                            <li><strong>Oran:</strong> 10g kahve için 180ml su.</li>
+                            <li><strong>Süre:</strong> 4 dakika bekleyin.</li>
+                            <li><strong>Püf Nokta:</strong> Pistonu indirmeden önce üstte biriken kabuğu kaşıkla kırın.</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Method 2: Pour Over (V60) -->
+                <div class="coffee-item" style="display:block;">
+                    <div style="display:flex; align-items:center; gap:15px; margin-bottom:15px;">
+                        <div style="font-size:2.5rem;">🧪</div>
+                        <div>
+                            <span class="coffee-name" style="margin:0;">Pour-Over (V60)</span>
+                            <span class="roast-tag" style="background:#c68555;">Berrak & Aromatik</span>
+                        </div>
+                    </div>
+                    <p class="tasting-notes">İnce kağıt filtre sayesinde tortusuz, aromaların ön plana çıktığı bir yöntem.</p>
+                    <div class="brew-note-box">
+                        <div class="note-header">ADIM ADIM</div>
+                        <ul class="note-text" style="padding-left:20px; margin:0;">
+                            <li><strong>Öğütme:</strong> Orta-İnce (Sofra tuzu gibi).</li>
+                            <li><strong>Hazırlık:</strong> Kağıt filtreyi önce sıcak suyla ıslatın (kağıt tadını alır).</li>
+                            <li><strong>Döküm:</strong> Suyu dairesel hareketlerle yavaşça dökün.</li>
+                            <li><strong>Püf Nokta:</strong> Su sıcaklığı 92-96°C olmalı, asla kaynar su kullanmayın.</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Method 3: Chemex -->
+                <div class="coffee-item" style="display:block;">
+                    <div style="display:flex; align-items:center; gap:15px; margin-bottom:15px;">
+                        <div style="font-size:2.5rem;">⌛</div>
+                        <div>
+                            <span class="coffee-name" style="margin:0;">Chemex</span>
+                            <span class="roast-tag" style="background:#c68555;">Zarif & Parlak</span>
+                        </div>
+                    </div>
+                    <p class="tasting-notes">Kalın filtresi yağları ve tortuyu tutar, çok temiz ve parlak bir kahve verir.</p>
+                    <div class="brew-note-box">
+                        <div class="note-header">ADIM ADIM</div>
+                        <ul class="note-text" style="padding-left:20px; margin:0;">
+                            <li><strong>Öğütme:</strong> Orta-Kalın (French Press ile V60 arası).</li>
+                            <li><strong>Oran:</strong> 1:15 kahve-su oranı idealdir.</li>
+                            <li><strong>Süre:</strong> Toplam demleme 4-5 dakika sürmeli.</li>
+                            <li><strong>Püf Nokta:</strong> Filtrenin 3 katlı kısmını ağız tarafına getirin.</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Method 4: Filter Machine -->
+                <div class="coffee-item" style="display:block;">
+                    <div style="display:flex; align-items:center; gap:15px; margin-bottom:15px;">
+                        <div style="font-size:2.5rem;">☕</div>
+                        <div>
+                            <span class="coffee-name" style="margin:0;">Filtre Kahve Makinesi</span>
+                            <span class="roast-tag" style="background:#00704A;">Dengeli & Pratik</span>
+                        </div>
+                    </div>
+                    <p class="tasting-notes">Sabahların kurtarıcısı. Tutarlı ve dengeli bir fincan için en kolayı.</p>
+                    <div class="brew-note-box">
+                        <div class="note-header">ADIM ADIM</div>
+                        <ul class="note-text" style="padding-left:20px; margin:0;">
+                            <li><strong>Öğütme:</strong> Orta (Toz şeker kıvamı).</li>
+                            <li><strong>Oran:</strong> Her bir fincan (180ml) için 2 yemek kaşığı (10g) kahve.</li>
+                            <li><strong>Püf Nokta:</strong> Kahve demlendikten sonra ısıtıcı tabanda 20 dakikadan fazla bekletmeyin, tadı yanar.</li>
+                        </ul>
                     </div>
                 </div>
             </div>
@@ -812,13 +1441,32 @@
             });
 
             // 2. Set active state for clicked region if it's a map region
-            if (regionId !== 'blends') {
-                const clickedMapId = regionId === 'latin' ? 'latin-america' : 
-                                     regionId === 'africa' ? 'africa' : 'asia-pacific';
-                document.getElementById(clickedMapId).classList.add('active');
-                document.getElementById('blend-btn').classList.remove('active');
+            const singlesBtn = document.getElementById('btn-singles');
+            const blendsBtn = document.getElementById('btn-blends');
+            const seasonalBtn = document.getElementById('btn-seasonal');
+            const brewingBtn = document.getElementById('btn-brewing'); 
+
+            if (singlesBtn) singlesBtn.classList.remove('active');
+            if (blendsBtn) blendsBtn.classList.remove('active');
+            if (seasonalBtn) seasonalBtn.classList.remove('active');
+            if (brewingBtn) brewingBtn.classList.remove('active');
+
+            if (regionId === 'singles' && singlesBtn) {
+                singlesBtn.classList.add('active');
+            } else if (regionId === 'blends' && blendsBtn) {
+                blendsBtn.classList.add('active');
+            } else if (regionId === 'seasonal' && seasonalBtn) {
+                seasonalBtn.classList.add('active');
+            } else if (regionId === 'brewing' && brewingBtn) {
+                brewingBtn.classList.add('active');
             } else {
-                document.getElementById('blend-btn').classList.add('active');
+                const clickedMapId = regionId === 'latin' ? 'latin-america' : 
+                                     regionId === 'africa' ? 'africa' : 
+                                     regionId === 'asia' ? 'asia-pacific' : null;
+                if (clickedMapId) {
+                    const mapEl = document.getElementById(clickedMapId);
+                    if(mapEl) mapEl.classList.add('active');
+                }
             }
 
             // 3. Hide all cards
@@ -828,12 +1476,18 @@
             });
 
             // 4. Hide placeholder
-            document.getElementById('placeholder').style.display = 'none';
+            const placeholder = document.getElementById('placeholder');
+            if(placeholder) placeholder.style.display = 'none';
 
-            // 5. Show specific card with slight delay for smooth feel
+            // 5. Show specific card with safety check
             const cardId = 'card-' + regionId;
             const card = document.getElementById(cardId);
             
+            if (!card) {
+                console.warn("Card not found for ID:", cardId);
+                return;
+            }
+
             setTimeout(() => {
                 card.style.display = 'block';
                 // Trigger reflow
@@ -843,6 +1497,170 @@
                 // Scroll to content gently
                 card.scrollIntoView({behavior: 'smooth', block: 'start'});
             }, 50);
+        }
+
+        // Helper function for Quick Prompts
+        function fillAndAsk(text) {
+            document.getElementById('user-taste').value = text;
+            askBarista();
+        }
+
+        async function askBarista() {
+            const apiKey = ""; // API key will be injected at runtime
+            const userInput = document.getElementById('user-taste').value;
+            const responseDiv = document.getElementById('ai-response');
+            const loadingDiv = document.getElementById('ai-loading');
+            const btn = document.getElementById('ask-btn');
+
+            if (!userInput.trim()) {
+                alert("Lütfen bir şeyler yazın! ☕");
+                return;
+            }
+
+            // UI Updates
+            responseDiv.style.display = 'none';
+            loadingDiv.style.display = 'block';
+            btn.disabled = true;
+
+            const systemPrompt = `
+                Sen uzman bir Starbucks Coffee Master'sın. Kullanıcının tat tercihine veya yediği yiyeceğe göre bu listeden EN UYGUN kahveyi ve demleme yöntemini öner.
+                
+                LİSTE:
+                - Veranda Blend (Blonde Roast): Hafif, kakao, malt.
+                - Pike Place (Medium Roast): Dengeli, fındık.
+                - Guatemala Antigua (Medium): Limon, kakao, baharat.
+                - Colombia (Medium): Cevizimsi, bitkisel.
+                - Ethiopia (Medium): Limon, bitter çikolata.
+                - Sumatra (Dark): Topraksı, bitkisel, düşük asidite, yoğun.
+                - Espresso Roast (Dark): Karamelize, yoğun.
+                - Decaf Espresso Roast (Dark): Karamelize, yoğun (kafeinsiz).
+                - Caffè Verona (Dark): Bitter kakao, yanık tatlı.
+                - Holiday Blend (Dark): Baharatlı çikolata, ladin.
+                - Holiday Blonde (Blonde): Portakal, incir.
+
+                Yanıtını kısa, samimi ve Türkçe ver. Mutlaka bir kahve ve bir demleme yöntemi (French Press, Chemex, Filtre vb.) öner.
+                Emoji kullan.
+            `;
+
+            try {
+                const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        contents: [{
+                            parts: [{ text: userInput }]
+                        }],
+                        systemInstruction: {
+                            parts: [{ text: systemPrompt }]
+                        },
+                        // Fix for safety filters blocking coffee content
+                        safetySettings: [
+                            { category: "HARM_CATEGORY_HARASSMENT", threshold: "BLOCK_NONE" },
+                            { category: "HARM_CATEGORY_HATE_SPEECH", threshold: "BLOCK_NONE" },
+                            { category: "HARM_CATEGORY_SEXUALLY_EXPLICIT", threshold: "BLOCK_NONE" },
+                            { category: "HARM_CATEGORY_DANGEROUS_CONTENT", threshold: "BLOCK_NONE" }
+                        ]
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error('API yanıt vermedi');
+                }
+
+                const data = await response.json();
+                
+                // Debugging log
+                console.log("Gemini API Response:", data);
+                
+                // FIX: Optional chaining to safely access response structure
+                const aiText = data.candidates?.[0]?.content?.parts?.[0]?.text;
+
+                if (!aiText) {
+                    console.error("Missing text in response:", data);
+                    throw new Error('API yanıtı geçersiz veya filtrelendi.');
+                }
+
+                responseDiv.innerHTML = aiText.replace(/\n/g, '<br>');
+                responseDiv.style.display = 'block';
+
+            } catch (error) {
+                console.error(error);
+                responseDiv.innerHTML = "Üzgünüm, şu an barista molada. Lütfen tekrar dene! ☕⚠️";
+                responseDiv.style.display = 'block';
+            } finally {
+                loadingDiv.style.display = 'none';
+                btn.disabled = false;
+            }
+        }
+
+        // Feature: Get specific region story from Gemini
+        async function getRegionStory(regionName) {
+            const apiKey = ""; // API key will be injected at runtime
+            // Convert regionName to ID-friendly string for finding the div
+            let divId = "";
+            if (regionName === "Latin Amerika") divId = "story-latin-amerika";
+            else if (regionName === "Afrika") divId = "story-afrika";
+            else if (regionName === "Asya Pasifik") divId = "story-asya-pasifik";
+            else if (regionName === "Tek Kökenli Kahveler") divId = "story-singles"; // EKSİK OLAN BAĞLANTI EKLENDİ
+            
+            const storyDiv = document.getElementById(divId);
+            if (!storyDiv) {
+                console.warn("Hikaye alanı bulunamadı: " + divId);
+                return;
+            }
+
+            storyDiv.style.display = 'block';
+            storyDiv.innerHTML = "✨ Gemini hikayeyi hazırlıyor...";
+
+            // Prompt'u biraz daha özelleştirelim
+            let prompt = `Bana ${regionName} kahve bölgesinin kültürü ve coğrafyası hakkında çok kısa, büyüleyici, 2 cümlelik ilginç bir bilgi veya hikaye anlat. Türkçe olsun. Masalsı bir dille yaz.`;
+            
+            if (regionName === "Tek Kökenli Kahveler") {
+                prompt = "Bana 'Single Origin' (Tek Kökenli) kahvelerin neden özel olduğu, bir ülkenin toprağının (terroir) tada nasıl etki ettiği hakkında çok kısa, büyüleyici, 2 cümlelik ilginç bir bilgi ver. Türkçe olsun.";
+            }
+
+            try {
+                const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        contents: [{
+                            parts: [{ text: prompt }]
+                        }],
+                        // Fix for safety filters
+                        safetySettings: [
+                            { category: "HARM_CATEGORY_HARASSMENT", threshold: "BLOCK_NONE" },
+                            { category: "HARM_CATEGORY_HATE_SPEECH", threshold: "BLOCK_NONE" },
+                            { category: "HARM_CATEGORY_SEXUALLY_EXPLICIT", threshold: "BLOCK_NONE" },
+                            { category: "HARM_CATEGORY_DANGEROUS_CONTENT", threshold: "BLOCK_NONE" }
+                        ]
+                    })
+                });
+
+                if (!response.ok) throw new Error('API Error');
+
+                const data = await response.json();
+                
+                // Debugging log
+                console.log("Gemini Story Response:", data);
+                
+                // FIX: Optional chaining here as well
+                const story = data.candidates?.[0]?.content?.parts?.[0]?.text;
+                
+                if (!story) {
+                    throw new Error('Hikaye oluşturulamadı.');
+                }
+                
+                storyDiv.innerHTML = `<strong>✨ ${regionName} Hikayesi:</strong> ${story}`;
+                
+            } catch (e) {
+                console.error(e);
+                storyDiv.innerHTML = "Hikaye şu an alınamadı, ama kahve hala taze! ☕";
+            }
         }
     </script>
 </body>
